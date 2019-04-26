@@ -2,6 +2,7 @@
 name = "app_route_derive"
 description = "A procedural macro to allow automatic deserialization of URL path + query parameters into Rust structs"
 license = "MIT"
+repository = "https://github.com/bschwind/app-route"
 version = "0.1.0"
 authors = ["Brian Schwind <brianmschwind@gmail.com>"]
 edition = "2018"
