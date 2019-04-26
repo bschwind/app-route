@@ -1,0 +1,6 @@
+hard_tabs = true
+use_field_init_shorthand = true
+edition = "2018"
+
+# imports_layout = "Vertical" # Currently unstable
+# merge_imports = true # Currently unstable
