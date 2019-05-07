@@ -2,6 +2,7 @@
 name = "app_route"
 description = "Treat application routes (URL path + query string) as strongly-typed Rust structs"
 license = "MIT"
+readme = "README.md"
 repository = "https://github.com/bschwind/app-route"
 version = "0.1.0"
 authors = ["Brian Schwind <brianmschwind@gmail.com>"]
