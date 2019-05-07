@@ -1,3 +1,4 @@
 /target
+app_route/target
 **/*.rs.bk
 Cargo.lock
