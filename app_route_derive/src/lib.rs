@@ -9,22 +9,22 @@ use std::collections::HashSet;
 use syn::{parse_macro_input, DeriveInput};
 
 #[derive(Debug, PartialEq)]
-enum PathToRegexError {
+enum RouteToRegexError {
 	MissingLeadingForwardSlash,
 	NonAsciiChars,
 	InvalidIdentifier(String),
 	InvalidTrailingSlash,
 }
 
-fn path_to_regex(path: &str) -> Result<(String, String), PathToRegexError> {
+fn route_to_regex(route: &str) -> Result<(String, String), RouteToRegexError> {
 	enum ParseState {
 		Initial,
 		Static,
 		VarName(String),
 	};
 
-	if !path.is_ascii() {
-		return Err(PathToRegexError::NonAsciiChars);
+	if !route.is_ascii() {
+		return Err(RouteToRegexError::NonAsciiChars);
 	}
 
 	let ident_regex = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]*$").unwrap();
@@ -33,11 +33,11 @@ fn path_to_regex(path: &str) -> Result<(String, String), PathToRegexError> {
 	let mut format_str = "".to_string();
 	let mut parse_state = ParseState::Initial;
 
-	for byte in path.chars() {
+	for byte in route.chars() {
 		match parse_state {
 			ParseState::Initial => {
 				if byte != '/' {
-					return Err(PathToRegexError::MissingLeadingForwardSlash);
+					return Err(RouteToRegexError::MissingLeadingForwardSlash);
 				}
 
 				regex += "^/";
@@ -59,7 +59,7 @@ fn path_to_regex(path: &str) -> Result<(String, String), PathToRegexError> {
 				if byte == '/' {
 					// Validate 'name' as a Rust identifier
 					if !ident_regex.is_match(&name) {
-						return Err(PathToRegexError::InvalidIdentifier(name));
+						return Err(RouteToRegexError::InvalidIdentifier(name));
 					}
 
 					format_str += &format!("{}}}/", name);
@@ -79,7 +79,7 @@ fn path_to_regex(path: &str) -> Result<(String, String), PathToRegexError> {
 	}
 
 	if regex.ends_with('/') {
-		return Err(PathToRegexError::InvalidTrailingSlash);
+		return Err(RouteToRegexError::InvalidTrailingSlash);
 	}
 
 	regex += "$";
@@ -88,8 +88,8 @@ fn path_to_regex(path: &str) -> Result<(String, String), PathToRegexError> {
 }
 
 #[test]
-fn test_path_to_regex() {
-	let (regex, _) = path_to_regex("/p/:project_id/exams/:exam_id/submissions_expired").unwrap();
+fn test_route_to_regex() {
+	let (regex, _) = route_to_regex("/p/:project_id/exams/:exam_id/submissions_expired").unwrap();
 	assert_eq!(
 		regex,
 		r"^/p/(?P<project_id>[^/]+)/exams/(?P<exam_id>[^/]+)/submissions_expired$"
@@ -97,42 +97,42 @@ fn test_path_to_regex() {
 }
 
 #[test]
-fn test_path_to_regex_no_path_params() {
-	let (regex, _) = path_to_regex("/p/exams/submissions_expired").unwrap();
+fn test_route_to_regex_no_path_params() {
+	let (regex, _) = route_to_regex("/p/exams/submissions_expired").unwrap();
 	assert_eq!(regex, r"^/p/exams/submissions_expired$");
 }
 
 #[test]
-fn test_path_to_regex_no_leading_slash() {
-	let regex = path_to_regex("p/exams/submissions_expired");
-	assert_eq!(regex, Err(PathToRegexError::MissingLeadingForwardSlash));
+fn test_route_to_regex_no_leading_slash() {
+	let regex = route_to_regex("p/exams/submissions_expired");
+	assert_eq!(regex, Err(RouteToRegexError::MissingLeadingForwardSlash));
 }
 
 #[test]
-fn test_path_to_regex_non_ascii_chars() {
-	let regex = path_to_regex("🥖p🥖:project_id🥖exams🥖:exam_id🥖submissions_expired");
-	assert_eq!(regex, Err(PathToRegexError::NonAsciiChars));
+fn test_route_to_regex_non_ascii_chars() {
+	let regex = route_to_regex("🥖p🥖:project_id🥖exams🥖:exam_id🥖submissions_expired");
+	assert_eq!(regex, Err(RouteToRegexError::NonAsciiChars));
 }
 
 #[test]
-fn test_path_to_regex_invalid_ident() {
-	let regex = path_to_regex("/p/:project_id/exams/:exam*ID/submissions_expired");
+fn test_route_to_regex_invalid_ident() {
+	let regex = route_to_regex("/p/:project_id/exams/:exam*ID/submissions_expired");
 	assert_eq!(
 		regex,
-		Err(PathToRegexError::InvalidIdentifier("exam*ID".to_string()))
+		Err(RouteToRegexError::InvalidIdentifier("exam*ID".to_string()))
 	);
 
-	let regex = path_to_regex("/p/:project_id/exams/:_exam_id/submissions_expired");
+	let regex = route_to_regex("/p/:project_id/exams/:_exam_id/submissions_expired");
 	assert_eq!(
 		regex,
-		Err(PathToRegexError::InvalidIdentifier("_exam_id".to_string()))
+		Err(RouteToRegexError::InvalidIdentifier("_exam_id".to_string()))
 	);
 }
 
 #[test]
-fn test_path_to_regex_invalid_ending() {
-	let regex = path_to_regex("/p/:project_id/exams/:exam_id/submissions_expired/");
-	assert_eq!(regex, Err(PathToRegexError::InvalidTrailingSlash));
+fn test_route_to_regex_invalid_ending() {
+	let regex = route_to_regex("/p/:project_id/exams/:exam_id/submissions_expired/");
+	assert_eq!(regex, Err(RouteToRegexError::InvalidTrailingSlash));
 }
 
 fn get_string_attr(name: &str, attrs: &[syn::Attribute]) -> Option<String> {
@@ -190,13 +190,13 @@ fn field_is_option(field: &syn::Field) -> bool {
 	}
 }
 
-#[proc_macro_derive(AppRoute, attributes(path, query))]
-pub fn app_path_derive(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(AppRoute, attributes(route, query))]
+pub fn app_route_derive(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 
 	let struct_fields = get_struct_fields(&input.data);
 
-	let (path_fields, query_fields): (Vec<_>, Vec<_>) = struct_fields
+	let (route_fields, query_fields): (Vec<_>, Vec<_>) = struct_fields
 		.into_iter()
 		.partition(|f| !has_flag_attr("query", &f.attrs));
 
@@ -204,37 +204,37 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 	let generics = input.generics;
 	let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-	let path_string = get_string_attr("path", &input.attrs);
+	let route_string = get_string_attr("route", &input.attrs);
 
-	let url_path = path_string
-		.expect("derive(AppRoute) requires a #[path(\"/your/path/here\")] attribute on the struct");
+	let url_route = route_string
+		.expect("derive(AppRoute) requires a #[route(\"/your/route/here\")] attribute on the struct");
 
-	let (path_regex_str, format_str) =
-		path_to_regex(&url_path).expect("Could not convert path attribute to a valid regex");
+	let (route_regex_str, format_str) =
+		route_to_regex(&url_route).expect("Could not convert route attribute to a valid regex");
 
-	// Validate path_regex and make sure struct and path have matching fields
-	let path_regex =
-		Regex::new(&path_regex_str).expect("path attribute was not compiled into a valid regex");
+	// Validate route_regex and make sure struct and route have matching fields
+	let route_regex =
+		Regex::new(&route_regex_str).expect("route attribute was not compiled into a valid regex");
 
-	let regex_capture_names_set: HashSet<String> = path_regex
+	let regex_capture_names_set: HashSet<String> = route_regex
 		.capture_names()
 		.filter_map(|c_opt| c_opt.map(|c| c.to_string()))
 		.collect();
-	let field_names_set: HashSet<String> = path_fields
+	let field_names_set: HashSet<String> = route_fields
 		.clone()
 		.into_iter()
 		.map(|f| f.ident.unwrap().to_string())
 		.collect();
 
 	if regex_capture_names_set != field_names_set {
-		let missing_from_path = field_names_set.difference(&regex_capture_names_set);
+		let missing_from_route = field_names_set.difference(&regex_capture_names_set);
 		let missing_from_struct = regex_capture_names_set.difference(&field_names_set);
 
-		let error_msg = format!("\nFields in struct missing from path pattern: {:?}\nFields in path missing from struct: {:?}", missing_from_path, missing_from_struct);
+		let error_msg = format!("\nFields in struct missing from route pattern: {:?}\nFields in route missing from struct: {:?}", missing_from_route, missing_from_struct);
 		panic!(error_msg);
 	}
 
-	let path_field_assignments = path_fields.clone().into_iter().map(|f| {
+	let route_field_assignments = route_fields.clone().into_iter().map(|f| {
 		let f_ident = f.ident.unwrap();
 		let f_ident_str = f_ident.to_string();
 
@@ -260,9 +260,9 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
         }
     });
 
-	let path_field_parsers = quote! {
+	let route_field_parsers = quote! {
 		#(
-			#path_field_assignments
+			#route_field_assignments
 		),*
 	};
 
@@ -272,7 +272,7 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 		),*
 	};
 
-	let format_args = path_fields.clone().into_iter().map(|f| {
+	let format_args = route_fields.clone().into_iter().map(|f| {
 		let f_ident = f.ident.unwrap();
 
 		quote! {
@@ -308,7 +308,7 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 	};
 
 	let struct_constructor = match (
-		path_field_parsers.is_empty(),
+		route_field_parsers.is_empty(),
 		query_field_parsers.is_empty(),
 	) {
 		(true, true) => quote! {
@@ -321,22 +321,22 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 		},
 		(false, true) => quote! {
 			#name {
-				#path_field_parsers
+				#route_field_parsers
 			}
 		},
 		(false, false) => quote! {
 			#name {
-				#path_field_parsers,
+				#route_field_parsers,
 				#query_field_parsers
 			}
 		},
 	};
 
-	let app_path_impl = quote! {
+	let app_route_impl = quote! {
 		impl #impl_generics app_route::AppRoute for #name #ty_generics #where_clause {
 
 			fn path_pattern() -> String {
-				#path_regex_str.to_string()
+				#route_regex_str.to_string()
 			}
 
 			fn query_string(&self) -> Option<String> {
@@ -385,13 +385,13 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 				use app_route::RouteParseErr;
 
 				app_route::lazy_static! {
-					static ref PATH_REGEX: app_route::Regex = app_route::Regex::new(#path_regex_str).expect("Failed to compile regex");
+					static ref ROUTE_REGEX: app_route::Regex = app_route::Regex::new(#route_regex_str).expect("Failed to compile regex");
 				}
 
 				let question_pos = app_path.find('?');
 				let just_path = &app_path[..(question_pos.unwrap_or_else(|| app_path.len()))];
 
-				let captures = (*PATH_REGEX).captures(just_path).ok_or(RouteParseErr::NoMatches)?;
+				let captures = (*ROUTE_REGEX).captures(just_path).ok_or(RouteParseErr::NoMatches)?;
 
 				let query_string = question_pos.map(|question_pos| {
 					let mut query_string = &app_path[question_pos..];
@@ -416,7 +416,7 @@ pub fn app_path_derive(input: TokenStream) -> TokenStream {
 	let out = quote! {
 		const #impl_wrapper: () = {
 			extern crate app_route;
-			#app_path_impl
+			#app_route_impl
 		};
 	};
 

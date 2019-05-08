@@ -24,7 +24,7 @@ struct UserListQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/groups/:group_id/users")]
+#[route("/groups/:group_id/users")]
 struct UsersListRoute {
     group_id: u64,
 

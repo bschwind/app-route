@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 // Trivial case
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users")]
+#[route("/users")]
 struct UsersListPath {}
 
 fn trivial_benchmark(c: &mut Criterion) {
@@ -20,7 +20,7 @@ fn trivial_benchmark(c: &mut Criterion) {
 
 // Simple case
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailPath {
 	user_id: u64,
 }
@@ -62,7 +62,7 @@ pub struct ParentQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailNestedQueryPath {
 	user_id: u32,
 
@@ -83,7 +83,7 @@ pub struct VecQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailVecQueryPath {
 	user_id: u32,
 

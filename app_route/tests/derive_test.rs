@@ -2,7 +2,7 @@ use app_route::{AppRoute, RouteParseErr};
 use serde::{Deserialize, Serialize};
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users")]
+#[route("/users")]
 struct UsersListPath {}
 
 #[test]
@@ -30,7 +30,7 @@ fn no_leading_slash() {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailPath {
 	user_id: u64,
 }
@@ -60,7 +60,7 @@ fn one_param_no_leading_slash() {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id/friends/:friend_name")]
+#[route("/users/:user_id/friends/:friend_name")]
 struct UserFriendDetailPath {
 	user_id: u64,
 	friend_name: String,
@@ -113,7 +113,7 @@ struct UserListQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users")]
+#[route("/users")]
 struct UsersListWithQuery {
 	#[query]
 	query: UserListQuery,
@@ -228,7 +228,7 @@ fn no_params_simple_query_url_decoding() {
 // }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailExtraPath {
 	user_id: u8,
 
@@ -304,7 +304,7 @@ pub struct ParentQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailNestedQueryPath {
 	user_id: u32,
 
@@ -415,7 +415,7 @@ pub struct VecQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/users/:user_id")]
+#[route("/users/:user_id")]
 struct UserDetailVecQueryPath {
 	user_id: u32,
 
@@ -546,7 +546,7 @@ struct LimitOffsetQuery {
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
-#[path("/p/:project_id/exams/:exam_id/submissions_expired")]
+#[route("/p/:project_id/exams/:exam_id/submissions_expired")]
 struct ExpiredSubmissionsPath {
 	project_id: String,
 	exam_id: u64,
