@@ -592,3 +592,108 @@ fn test_only_question_mark() {
 		}
 	);
 }
+
+#[derive(AppRoute, Debug, PartialEq)]
+#[route("/users:tail*")]
+struct UsersWildcardRoute {
+	tail: String,
+}
+
+#[test]
+fn wildcard_1() {
+	let path: UsersWildcardRoute = "/users".parse().unwrap();
+	assert_eq!(
+		path,
+		UsersWildcardRoute {
+			tail: "".to_string(),
+		}
+	);
+}
+
+#[test]
+fn wildcard_2() {
+	let path: UsersWildcardRoute = "/users/slurmp".parse().unwrap();
+	assert_eq!(
+		path,
+		UsersWildcardRoute {
+			tail: "/slurmp".to_string(),
+		}
+	);
+}
+
+#[test]
+fn wildcard_3() {
+	let path: UsersWildcardRoute =
+		"/users/slurmp/social_accounts/twitter?some_query_string=1#whatever_hash"
+			.parse()
+			.unwrap();
+	assert_eq!(
+		path,
+		UsersWildcardRoute {
+			tail: "/slurmp/social_accounts/twitter".to_string(),
+		}
+	);
+}
+
+#[derive(AppRoute, Debug, PartialEq)]
+#[route("/users/:tail*")]
+struct UsersWildcardTrailingSlashRoute {
+	tail: String,
+}
+
+#[test]
+fn wildcard_5() {
+	// The route pattern has an explicit '/' after 'users', so a path
+	// such as '/users' will not match this pattern
+	let path: Result<UsersWildcardTrailingSlashRoute, _> = "/users".parse();
+	match path {
+		Err(RouteParseErr::NoMatches) => {}
+		_ => assert!(false),
+	}
+}
+
+#[test]
+fn wildcard_6() {
+	let path: UsersWildcardTrailingSlashRoute =
+		"/users/slurmp/social_accounts/twitter?some_query_string=1#whatever_hash"
+			.parse()
+			.unwrap();
+	assert_eq!(
+		path,
+		UsersWildcardTrailingSlashRoute {
+			tail: "slurmp/social_accounts/twitter".to_string(),
+		}
+	);
+}
+
+#[derive(AppRoute, Debug, PartialEq)]
+#[route("/:friend_name/social_accounts/:social_name")]
+struct FriendSocialRoute {
+	friend_name: String,
+	social_name: String,
+}
+
+// Perhaps a bit too wild
+#[derive(AppRoute, Debug, PartialEq)]
+#[route("/users:tail*")]
+struct NestedFancyRoute {
+	tail: FriendSocialRoute,
+}
+
+#[test]
+fn wildcard_7() {
+	let path: NestedFancyRoute =
+		"/users/slurmp/social_accounts/twitter?some_query_string=1#whatever_hash"
+			.parse()
+			.unwrap();
+
+	assert_eq!(
+		path,
+		NestedFancyRoute {
+			tail: FriendSocialRoute {
+				friend_name: "slurmp".to_string(),
+				social_name: "twitter".to_string(),
+			},
+		}
+	);
+}

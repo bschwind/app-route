@@ -14,6 +14,7 @@ enum RouteToRegexError {
 	NonAsciiChars,
 	InvalidIdentifier(String),
 	InvalidTrailingSlash,
+	CharactersAfterWildcard,
 }
 
 fn route_to_regex(route: &str) -> Result<(String, String), RouteToRegexError> {
@@ -21,6 +22,7 @@ fn route_to_regex(route: &str) -> Result<(String, String), RouteToRegexError> {
 		Initial,
 		Static,
 		VarName(String),
+		WildcardFound,
 	};
 
 	if !route.is_ascii() {
@@ -62,13 +64,27 @@ fn route_to_regex(route: &str) -> Result<(String, String), RouteToRegexError> {
 						return Err(RouteToRegexError::InvalidIdentifier(name));
 					}
 
-					format_str += &format!("{}}}/", name);
 					regex += &format!("(?P<{}>[^/]+)/", name);
+					format_str += &format!("{}}}/", name);
 					parse_state = ParseState::Static;
+				} else if byte == '*' {
+					// Found a wildcard - add the var name to the regex
+
+					// Validate 'name' as a Rust identifier
+					if !ident_regex.is_match(&name) {
+						return Err(RouteToRegexError::InvalidIdentifier(name));
+					}
+
+					regex += &format!("(?P<{}>.*)", name);
+					format_str += &format!("{}}}", name);
+					parse_state = ParseState::WildcardFound;
 				} else {
 					name.push(byte);
 					parse_state = ParseState::VarName(name);
 				}
+			}
+			ParseState::WildcardFound => {
+				return Err(RouteToRegexError::CharactersAfterWildcard);
 			}
 		};
 	}
@@ -206,8 +222,9 @@ pub fn app_route_derive(input: TokenStream) -> TokenStream {
 
 	let route_string = get_string_attr("route", &input.attrs);
 
-	let url_route = route_string
-		.expect("derive(AppRoute) requires a #[route(\"/your/route/here\")] attribute on the struct");
+	let url_route = route_string.expect(
+		"derive(AppRoute) requires a #[route(\"/your/route/here\")] attribute on the struct",
+	);
 
 	let (route_regex_str, format_str) =
 		route_to_regex(&url_route).expect("Could not convert route attribute to a valid regex");
