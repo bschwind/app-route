@@ -132,16 +132,19 @@ fn test_route_to_regex_non_ascii_chars() {
 
 #[test]
 fn test_route_to_regex_invalid_ident() {
-	let regex = route_to_regex("/p/:project_id/exams/:exam*ID/submissions_expired");
-	assert_eq!(
-		regex,
-		Err(RouteToRegexError::InvalidIdentifier("exam*ID".to_string()))
-	);
-
 	let regex = route_to_regex("/p/:project_id/exams/:_exam_id/submissions_expired");
 	assert_eq!(
 		regex,
 		Err(RouteToRegexError::InvalidIdentifier("_exam_id".to_string()))
+	);
+}
+
+#[test]
+fn test_route_to_regex_characters_after_wildcard() {
+	let regex = route_to_regex("/p/:project_id/exams/:exam*ID/submissions_expired");
+	assert_eq!(
+		regex,
+		Err(RouteToRegexError::CharactersAfterWildcard)
 	);
 }
 

@@ -4,12 +4,12 @@ description = "Treat application routes (URL path + query string) as strongly-ty
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/bschwind/app-route"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Brian Schwind <brianmschwind@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-app_route_derive = { version = "0.2.1", path = "../app_route_derive" }
+app_route_derive = { version = "0.3.0", path = "../app_route_derive" }
 lazy_static = "1.3.0"
 regex = "1.1.6"
 serde_qs = "0.4.5"
