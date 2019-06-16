@@ -85,5 +85,6 @@ TODO
 ----
 
 - [ ] URL Hash Fragments
-- [ ] Support trailing wildcard as a path param
+- [x] Support trailing wildcard as a path param
 - [ ] Make the AppRoute trait object-safe if possible
+- [ ] Use spans properly in the procedural macro so errors actually make sense

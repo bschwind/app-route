@@ -15,47 +15,47 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct UserListQuery {
-    limit: Option<u64>,
-    offset: Option<u64>,
-    keyword: Option<String>,
+	limit: Option<u64>,
+	offset: Option<u64>,
+	keyword: Option<String>,
 
-    #[serde(default)]
-    friends_only: bool,
+	#[serde(default)]
+	friends_only: bool,
 }
 
 #[derive(AppRoute, Debug, PartialEq)]
 #[route("/groups/:group_id/users")]
 struct UsersListRoute {
-    group_id: u64,
+	group_id: u64,
 
-    #[query]
-    query: UserListQuery,
+	#[query]
+	query: UserListQuery,
 }
 
 fn main() {
-    let path: UsersListRoute =
-        "/groups/4313145/users?offset=10&limit=20&friends_only=false&keyword=some_keyword"
-            .parse()
-            .unwrap();
+	let path: UsersListRoute =
+		"/groups/4313145/users?offset=10&limit=20&friends_only=false&keyword=some_keyword"
+			.parse()
+			.unwrap();
 
-    assert_eq!(
-        path,
-        UsersListRoute {
-            group_id: 4313145,
-            query: {
-                UserListQuery {
-                    limit: Some(20),
-                    offset: Some(10),
-                    keyword: Some("some_keyword".to_string()),
-                    friends_only: false,
-                }
-            }
-        }
-    );
+	assert_eq!(
+		path,
+		UsersListRoute {
+			group_id: 4313145,
+			query: {
+				UserListQuery {
+					limit: Some(20),
+					offset: Some(10),
+					keyword: Some("some_keyword".to_string()),
+					friends_only: false,
+				}
+			}
+		}
+	);
 
-    println!("Path: {}", path);
-    // Output:
-    // Path: /groups/4313145/users?limit=20&offset=10&keyword=some_keyword&friends_only=false
+	println!("Path: {}", path);
+	// Output:
+	// Path: /groups/4313145/users?limit=20&offset=10&keyword=some_keyword&friends_only=false
 }
 ```
 */
@@ -77,6 +77,12 @@ pub enum RouteParseErr {
 	NoQueryString,
 	ParamParseErr(String),
 	QueryParseErr(String),
+}
+
+impl std::fmt::Display for RouteParseErr {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		write!(f, "{:?}", self)
+	}
 }
 
 pub trait AppRoute: std::fmt::Display + std::str::FromStr {
